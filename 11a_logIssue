@@ -1,0 +1,155 @@
+# Handling Double Console Logs in React Components
+
+When you observe your React component logging twice in the console, the issue might be related to **React's Strict Mode**.
+
+## Issue Explanation
+In development mode, React's Strict Mode intentionally invokes certain lifecycle methods (like `componentDidMount` and `componentDidUpdate`) and effects twice to help identify potential side effects. As a result, the `componentDidMount` method runs twice, leading to duplicate fetch calls and logs.
+
+Here is the example component:
+
+```javascript
+import { Component } from 'react';
+
+import logo from './logo.svg';
+import './App.css';
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      monsters: [],
+    };
+  }
+
+  componentDidMount() {
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then((response) => response.json())
+      .then((users) =>
+        this.setState(
+          () => {
+            return { monsters: users };
+          },
+          () => {
+            console.log(this.state);
+          }
+        )
+      );
+  }
+
+  render() {
+    return (
+      <div className="App">
+        {this.state.monsters.map((monster) => {
+          return (
+            <div key={monster.id}>
+              <h1>{monster.name}</h1>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+## Confirm the Cause
+
+1. Open `index.js` in your project.
+2. Check if your component is wrapped with `<React.StrictMode>`:
+
+   ```javascript
+   import React from 'react';
+   import ReactDOM from 'react-dom/client';
+   import './index.css';
+   import App from './App';
+
+   const root = ReactDOM.createRoot(document.getElementById('root'));
+   root.render(
+     <React.StrictMode>
+       <App />
+     </React.StrictMode>
+   );
+   ```
+
+## Solutions
+
+### 1. Remove Strict Mode
+To stop seeing the double logs, you can remove the `<React.StrictMode>` wrapper in `index.js`:
+
+```javascript
+root.render(
+  // <React.StrictMode>
+    <App />
+  // </React.StrictMode>
+);
+```
+
+**Note:** Removing Strict Mode is not recommended for production as it helps identify potential issues during development.
+
+---
+
+### 2. Use a Flag to Avoid Duplicate Fetch
+You can modify the component to ensure the fetch logic runs only once, even in Strict Mode:
+
+```javascript
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      monsters: [],
+      hasFetched: false,
+    };
+  }
+
+  componentDidMount() {
+    if (!this.state.hasFetched) {
+      fetch('https://jsonplaceholder.typicode.com/users')
+        .then((response) => response.json())
+        .then((users) =>
+          this.setState(
+            () => {
+              return { monsters: users, hasFetched: true };
+            },
+            () => {
+              console.log(this.state);
+            }
+          )
+        );
+    }
+  }
+
+  render() {
+    return (
+      <div className="App">
+        {this.state.monsters.map((monster) => {
+          return (
+            <div key={monster.id}>
+              <h1>{monster.name}</h1>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+This ensures that the fetch and log operations only occur once, regardless of Strict Mode.
+
+---
+
+### 3. Accept the Behavior
+In production builds, Strict Mode does not invoke methods twice. If the double logging only happens in development and does not affect functionality, it is safe to ignore the issue.
+
+---
+
+## Summary
+- **Strict Mode** is responsible for the double log.
+- You can remove Strict Mode in `index.js` or implement a flag to avoid duplicate fetch and log operations.
+- This behavior only affects development mode; production builds are unaffected.
+
+By following these steps, you can address and resolve the issue effectively.
