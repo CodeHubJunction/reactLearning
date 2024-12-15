@@ -117,36 +117,6 @@ export default App;
      render
      ```
 
----
-
-## **Order of Execution**
-The lifecycle methods are called in the following order:
-
-1. **`constructor()`**
-   - Initializes the state and logs:
-     ```
-     constructor
-     ```
-
-2. **`render()` (Initial Render)**
-   - Generates the initial UI and logs:
-     ```
-     render
-     ```
-
-3. **`componentDidMount()`**
-   - Fetches data and logs:
-     ```
-     componentDidMount
-     ```
-
-4. **`render()` (Triggered by `setState`)**
-   - Updates the UI with fetched data and logs:
-     ```
-     render
-     ```
-
----
 
 ## **Complete Log Output**
 
